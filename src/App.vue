@@ -19,6 +19,7 @@ let graph, dnd;
 // 创建画布
 function handleCreateContainers() {
   graph = new Graph({
+    magnetConnectable: false,
     autoResize: true,
     translating: {
       restrict: true,
@@ -115,10 +116,7 @@ nextTick(() => {
 
 function handleExport() {
   // 导出为PNG
-  graph.exportPNG({
-    width: 1920,
-    height: 1080
-  })
+  console.log(graph.toJSON())
 }
 
 // 创建一个新的节点
@@ -128,12 +126,12 @@ function handleMouseDown(e) {
     tools: ['button-remove'],
     ports: { // 连接桩
       groups: {
-        group1: {
+        left: {
           position: {
             name: 'left',
           },
         },
-        group2: {
+        right: {
           position: {
             name: 'right',
           },
@@ -142,20 +140,18 @@ function handleMouseDown(e) {
       items: [
         {
           id: generateRandom8Digits(),
-          group: 'group1',
+          group: 'left',
           attrs: {
             circle: {
-              magnet: true,
-              r: 6,
-              stroke: '#31d0c6',
-              strokeWidth: 2,
-              fill: '#fff',
+              magnet: false, // 控制这个节点是否可以链接
+              stroke: '#8f8f8f',
+              r: 5,
             },
           },
         },
         {
           id: generateRandom8Digits(),
-          group: 'group2',
+          group: 'right',
           attrs: {
             circle: {
               r: 6,
@@ -168,12 +164,6 @@ function handleMouseDown(e) {
         },
       ]
     },
-    // attrs: {
-    //   body: {
-    //     rx: 20,
-    //     ry: 26,
-    //   },
-    // },
     width: dom.clientWidth,
     height: dom.clientHeight,
     label: dom.innerText,
