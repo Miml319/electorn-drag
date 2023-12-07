@@ -6,6 +6,7 @@ import {Snapline} from "@antv/x6-plugin-snapline";
 import {Selection} from '@antv/x6-plugin-selection'
 import {History} from '@antv/x6-plugin-history'
 import {Export} from '@antv/x6-plugin-export'
+import tool from "./tool";
 
 // 生成一个 8 位的随机数
 function generateRandom8Digits() {
@@ -61,14 +62,14 @@ function handleCreateContainers() {
     mousewheel: true,  // 画布缩放
     container: document.getElementById('container'),
     background: {
-      color: '#F2F7FA',
+      color: '#77787a',
     },
     grid: {
       visible: true,
       type: 'doubleMesh',
       args: [
         {
-          color: '#eee', // 主网格线颜色
+          color: '#5d5a5a', // 主网格线颜色
           thickness: 1, // 主网格线宽度
         },
         {
@@ -78,6 +79,10 @@ function handleCreateContainers() {
         },
       ],
     },
+  })
+  // 添加监听事件
+  graph.on('cell:dblclick', ({e, x, y, cell, view}) => {
+    console.log(cell.data.parameter)
   })
   // 初始化工具拖动
   dnd = new Dnd({
@@ -115,8 +120,34 @@ nextTick(() => {
 })
 
 function handleExport() {
+  function findElementById(id) {
+    // 用于查找对应的节点信息
+    return graph.toJSON().cells.find(element => element.id === id);
+  }
+  function findNameById(id){
+    var value;
+    // 查找链接桩信息
+    graph.toJSON().cells.forEach(item => {
+      item.ports && item.ports.items.forEach(child => {
+        if(child.id === Number(id)){
+          value = child
+        }
+      })
+    })
+    return value
+  }
+  const list = graph.toJSON().cells.filter(item => item.shape === "edge")
+  list.forEach(item => {
+    item.source.parameter = findElementById(item.source.cell).data
+    item.target.parameter = findElementById(item.target.cell).data
+    item.source.portInfo = findNameById(item.source.port)
+    item.target.portInfo = findNameById(item.target.port)
+  })
+  // graph.toJSON().cells.forEach((item,index) => {
+  //   list[item.id] = item
+  // })
   // 导出为PNG
-  console.log(graph.toJSON())
+  console.log(list)
 }
 
 // 创建一个新的节点
@@ -172,6 +203,71 @@ function handleMouseDown(e) {
   dnd.start(node, e)
 }
 
+const groups = {
+  left: {
+    position: {
+      name: 'left',
+    },
+  },
+  bottom: {
+    position: {
+      name: 'bottom',
+    },
+  },
+  right: {
+    position: {
+      name: 'right',
+    },
+  },
+}
+
+// 创建一个电阻
+function handleCreateDianZu(e, item) {
+  const dom = e.target
+  const itemList = []
+  item.in.forEach(value => {
+    itemList.push({
+      id: generateRandom8Digits(),
+      group: value.position,
+      type: value.type,
+      attrs: {
+        circle: {
+          magnet: true, // 控制这个节点是否可以链接
+          stroke: '#8f8f8f',
+          r: 5,
+        },
+      }
+    })
+  })
+  item.out.forEach(value => {
+    itemList.push({
+      id: generateRandom8Digits(),
+      group: value.position,
+      type: value.type,
+      attrs: {
+        circle: {
+          magnet: true, // 控制这个节点是否可以链接
+          stroke: '#8f8f8f',
+          r: 5,
+        },
+      }
+    })
+  })
+  const node = graph.createNode({
+    ports: {
+      groups,
+      items: [...itemList]
+    },
+    data: item,
+    width: dom.clientWidth,
+    height: dom.clientHeight,
+    shape: 'image',
+    imageUrl:
+        `../src/assets/svg/${item.type}.png`,
+  })
+  dnd.start(node, e)
+}
+
 function handleUndo() {
   // 撤回
   graph.undo()
@@ -187,8 +283,11 @@ function handleUndo() {
     </div>
     <div class="page">
       <div class="tab">
-        <div class="item" @mousedown="handleMouseDown">测试模组</div>
-        <div class="item" style="height: 100px" @mousedown="handleMouseDown">测试模组2</div>
+        <div class="item" v-for="(item,index) of tool" @mousedown="handleCreateDianZu($event,item)" :dir="item">
+          <img :src="`../src/assets/svg/${item.type}.png`" style="width: 100%;pointer-events: none">
+          <div>{{ item.name }}</div>
+        </div>
+        <!--        <div class="item" style="height: 100px" @mousedown="handleMouseDown">测试模组2</div>-->
       </div>
       <div id="container"></div>
       <!--    <div id="minimap"></div>-->
@@ -236,13 +335,11 @@ function handleUndo() {
 .item {
   cursor: pointer;
   display: flex;
-  margin-bottom: 10px;
+  flex-direction: column;
+  margin-bottom: 30px;
   align-items: center;
   justify-content: center;
   width: 100px;
-  background-color: #f9f9f9;
-  height: 40px;
-
 }
 
 .tab {
