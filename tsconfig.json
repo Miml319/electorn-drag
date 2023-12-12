@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "importHelpers": true,
+    "types": ["element-plus/global"],
     "jsx": "preserve",
     "esModuleInterop": true,
     "resolveJsonModule": true,

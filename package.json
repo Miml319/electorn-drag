@@ -42,6 +42,7 @@
     "@antv/x6-plugin-export": "^2.1.6",
     "@antv/x6-plugin-history": "^2.2.4",
     "@antv/x6-plugin-selection": "^2.2.1",
-    "@antv/x6-plugin-snapline": "^2.1.7"
+    "@antv/x6-plugin-snapline": "^2.1.7",
+    "element-plus": "^2.4.3"
   }
 }

@@ -36,7 +36,7 @@ const tool = [{
     }, {
         name: '温度',
         value: 1,
-        units: ['mohm', 'ohm', 'kohm']
+        units: ['mohm', 'ohm', 'kohm'],
     }]
 },{
     name: "电感",
